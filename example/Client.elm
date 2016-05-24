@@ -21,7 +21,7 @@ type Msg
   | IrcMsg Type.Msg
 
 url =
-  "ws://localhost:6667/?server=" ++ Http.uriEncode "irc.nomi.cz"
+  "ws://localhost:6667/?server=" ++ Http.uriEncode "irc.freenode.org"
 
 commands = Irc.Cmd.commands url
 
