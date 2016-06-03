@@ -1,6 +1,6 @@
-module Irc.Parser exposing (parse)
+module Irc.Parser exposing (parse) --where
 
-import Irc.Type as Type
+import Irc.Types as Types
 import Regex
 import Array
 import String
@@ -41,17 +41,17 @@ parsePrivmsg tokens =
     content = List.drop 1 tokens.params |> String.join " "
   in
     if String.startsWith "#" name then
-      Type.Message {
+      Types.Message {
         from = sender, channel = name, text = content
         }
     else
-      Type.Query {
+      Types.Query {
         from = sender, to = name, text = content
       }
 
 parseUser str =
   let parts = matchToArray pattern.user str
-  in Type.User (getMatch 0 parts) (getMatch 1 parts) (getMatch 2 parts)
+  in Types.User (getMatch 0 parts) (getMatch 1 parts) (getMatch 2 parts)
 
 toParams str =
   let
@@ -89,37 +89,37 @@ parse str =
   in
     case tokens.command of
       Just "PING" ->
-        Type.Ping (String.join " " tokens.params)
+        Types.Ping (String.join " " tokens.params)
 
       Just "NOTICE" ->
-        Type.Notice (String.join " " tokens.params)
+        Types.Notice (String.join " " tokens.params)
 
       Just "PRIVMSG" ->
         parsePrivmsg tokens
 
       Just "004" ->
-        Type.Registered
+        Types.Registered
 
       Just "NICK" ->
         let sender = parseUser (Maybe.withDefault "" tokens.prefix)
-        in Type.Nick {who = sender, nick = String.join " " tokens.params}
+        in Types.Nick {who = sender, nick = String.join " " tokens.params}
 
       Just "JOIN" ->
         let sender = parseUser (Maybe.withDefault "" tokens.prefix)
-        in Type.Joined {who = sender, channel = String.join " " tokens.params}
+        in Types.Joined {who = sender, channel = String.join " " tokens.params}
 
       Just "PART" ->
         let
           sender = parseUser (Maybe.withDefault "" tokens.prefix)
           channel = List.head tokens.params
-        in Type.Parted {who = sender, channel = Maybe.withDefault "" channel, reason = List.head tokens.params}
+        in Types.Parted {who = sender, channel = Maybe.withDefault "" channel, reason = List.head tokens.params}
 
       Just "KICK" ->
         let
           sender = parseUser (Maybe.withDefault "" tokens.prefix)
           channel = List.head tokens.params
           whom = List.head (List.drop 1 tokens.params)
-        in Type.Kick {
+        in Types.Kick {
           who = sender,
           whom = Maybe.withDefault "" whom,
           channel = Maybe.withDefault "" channel,
@@ -130,7 +130,7 @@ parse str =
         let
           sender = parseUser (Maybe.withDefault "" tokens.prefix)
           channel = List.head tokens.params
-        in Type.Topic {who = sender, channel = Maybe.withDefault "" channel, text = List.head tokens.params}
+        in Types.Topic {who = sender, channel = Maybe.withDefault "" channel, text = List.head tokens.params}
 
       _ ->
-        Type.Unknown str
+        Types.Unknown str

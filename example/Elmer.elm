@@ -1,44 +1,37 @@
-import Http
 import Html
-import Html.App
 
-import Irc
-import Irc.Type as Type
-import Irc.Cmd
+import Irc.App
+import Irc.Types as Types
 
-url =
-  "ws://localhost:6667/?server=" ++ Http.uriEncode "irc.freenode.org"
-
-commands = Irc.Cmd.commands url
-
-onIrc msg =
+onIrc msg model commands =
   case Debug.log "msg" msg of
-    Type.Query {from, to, text} ->
-      commands.query from.nick text
+    Types.Query {from, to, text} ->
+      (model, commands.query from.nick text)
 
-    Type.Message {from, channel, text} ->
-      commands.message channel text
+    Types.Message {from, channel, text} ->
+      (model, commands.message channel text)
 
-    Type.Registered ->
-      commands.join "#testik"
+    Types.Registered ->
+      (model, commands.join "#testik")
 
     _ ->
-      Cmd.none
-
-passToIrc msg cmd =
-  Cmd.batch [cmd, Irc.pass url msg]
-
-update msg x =
-  (x, onIrc msg |> (passToIrc msg))
+      (model, Cmd.none)
 
 user =
-  Type.User "elmer" "elmer" "Elmer Elmerovič"
+  Types.User "elmer" "elmer" "Elmer Elmerovič"
+
+cfg =
+  { proxy = "localhost:6667", server = "irc.freenode.org", user = user }
+
+update _ model _ =
+  (model, Cmd.none)
 
 main =
-  Html.App.program
+  Irc.App.program
     {
-      init = (Nothing, commands.register user),
+      init = Nothing,
+      cfg = cfg,
       view = always (Html.text "..."),
-      update = update,
-      subscriptions = always (Irc.listen url)
+      onIrc = onIrc,
+      update = update
     }

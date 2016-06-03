@@ -1,4 +1,4 @@
-module Irc.Type exposing (..)
+module Irc.Types exposing (..) --where
 
 type alias User
   = {
@@ -7,7 +7,7 @@ type alias User
     fullname : String
   }
 
-type Msg
+type Message
   = Unknown String
   | Ping String
   | Notice String

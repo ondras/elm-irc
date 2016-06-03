@@ -1,13 +1,10 @@
-import Http
 import Html exposing (..)
-import Html.App exposing (program)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import String
 
-import Irc
-import Irc.Type as Type
-import Irc.Cmd
+import Irc.App
+import Irc.Types as Types
 
 type alias Model =
   {
@@ -15,33 +12,22 @@ type alias Model =
     messages : List String
   }
 
-type Msg
-  = Input String
-  | Send
-  | IrcMsg Type.Msg
-
-url =
-  "ws://localhost:6667/?server=" ++ Http.uriEncode "irc.freenode.org"
-
-commands = Irc.Cmd.commands url
+type Msg = Input String | Send
 
 format msg =
   case msg of
-    Type.Registered -> "Registered"
-    Type.Notice str -> str
-    Type.Unknown str -> str
+    Types.Registered -> "Registered"
+    Types.Notice str -> str
+    Types.Unknown str -> str
     _ -> ""
 
-onIrc msg model =
-  case Debug.log "onIrc" msg of
+onIrc msg model commands =
+  case msg of
     _ ->
       ({model | messages = (format msg) :: model.messages}, Cmd.none)
 
-passToIrc msg (model, cmd) =
-  (model, Cmd.batch [cmd, Irc.pass url msg])
-
-update msg model =
-  case Debug.log "update" msg of
+update msg model commands =
+  case msg of
     Input str ->
       {model | input = str} ! [Cmd.none]
 
@@ -53,10 +39,6 @@ update msg model =
       in
         {model | input = ""} ! [commands.raw cmd params]
 
-    IrcMsg msg ->
-      onIrc msg model |> (passToIrc msg)
-
-view : Model -> Html Msg
 view model =
   div []
     [
@@ -69,12 +51,16 @@ viewMessage msg =
   p [] [ text msg ]
 
 user =
-  Type.User "tester" "tester" "Test Testovič"
+  Types.User "tester23" "tester23" "Test Testovič 23"
 
-main =
-  program
-    { init = (Model "" [], commands.register user)
-    , view = view
-    , update = update
-    , subscriptions = always ((Sub.map IrcMsg) (Irc.listen url))
-    }
+cfg =
+  { proxy = "localhost:6667", server = "irc.freenode.org", user = user }
+
+main = 
+  Irc.App.program {
+    init = Model "" [],
+    cfg = cfg,
+    view = view,
+    onIrc = onIrc,
+    update = update
+  }
