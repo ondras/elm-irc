@@ -6,7 +6,8 @@ import Irc.Types
 
 all =
   suite "Parser" [
-    unknown
+    unknown,
+    ping
   ]
 
 unknown =
@@ -16,3 +17,11 @@ unknown =
     actual = parse str
   in
    assertEqual expected actual |> test "Unknown"
+
+ping =
+  let
+    str = "xxx"
+    expected = Irc.Types.Ping str
+    actual = parse ("PING " ++ str)
+  in
+   assertEqual expected actual |> test "Ping"
