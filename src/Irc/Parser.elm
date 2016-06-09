@@ -11,12 +11,13 @@ type alias Tokens = {
   params : List String
 }
 
-pattern = {
-    message = Regex.regex "^(:(\\S+) )?(\\S+)( (.+))?$",
-    user = Regex.regex "^(.*)!(.*)@(.*)$",
-    target = Regex.regex "^(\\S+) :(.*)$"
-  }
+getMatch : Int -> Array.Array (Maybe String) -> String
+getMatch index matches =
+  Array.get index matches
+    |> Maybe.withDefault (Just "")
+    |> Maybe.withDefault ""
 
+matchToArray : Regex.Regex -> String -> Array.Array (Maybe String)
 matchToArray regex str =
   let
     m = Regex.find Regex.All regex str
@@ -28,15 +29,10 @@ matchToArray regex str =
       Just m ->
         Array.fromList m.submatches
 
-
-getMatch index matches =
-  Array.get index matches
-    |> Maybe.withDefault (Just "")
-    |> Maybe.withDefault ""
-
+parsePrivmsg : Tokens -> Types.Message
 parsePrivmsg tokens =
   let
-    sender = parseUser (Maybe.withDefault "" tokens.prefix)
+    sender = toUser (Maybe.withDefault "" tokens.prefix)
     name = List.head tokens.params |> Maybe.withDefault ""
     content = List.drop 1 tokens.params |> String.join " "
   in
@@ -49,11 +45,13 @@ parsePrivmsg tokens =
         from = sender, to = name, text = content
       }
 
-parseUser str =
-  let parts = matchToArray pattern.user str
+toUser : String -> Types.User
+toUser str =
+  let parts = matchToArray (Regex.regex "^(.*)!(.*)@(.*)$") str
   in Types.User (getMatch 0 parts) (getMatch 1 parts) (getMatch 2 parts)
 
-toParams str =
+splitParams : String -> List String
+splitParams str =
   let
     splitted = Regex.split (Regex.AtMost 1) (Regex.regex "(^| ):") str
     first = Maybe.withDefault "" (List.head splitted)
@@ -64,14 +62,16 @@ toParams str =
       Nothing -> params
       Just last -> params ++ [last]
 
-tokenize source parts =
+toTokens : Maybe String -> (List String)-> Tokens
+toTokens source parts =
   let
     command = List.head parts
     str = String.join " " (List.drop 1 parts)
   in
-    Tokens source command (toParams str)
+    Tokens source command (splitParams str)
 
-toTokens str =
+tokenize : String -> Tokens
+tokenize str =
   let
     parts = String.split " " str
     firstPart = List.head parts |> Maybe.withDefault ""
@@ -79,13 +79,14 @@ toTokens str =
 
   in
     if String.startsWith ":" firstPart then
-      tokenize (String.dropLeft 1 firstPart |> Just) remainingParts
+      toTokens (String.dropLeft 1 firstPart |> Just) remainingParts
     else
-      tokenize Nothing parts
+      toTokens Nothing parts
 
+parse : String -> Types.Message
 parse str =
   let
-    tokens = toTokens str
+    tokens = tokenize str
   in
     case tokens.command of
       Just "PING" ->
@@ -101,25 +102,25 @@ parse str =
         Types.Registered
 
       Just "NICK" ->
-        let sender = parseUser (Maybe.withDefault "" tokens.prefix)
+        let sender = toUser (Maybe.withDefault "" tokens.prefix)
         in Types.Nick {who = sender, nick = String.join " " tokens.params}
 
       Just "JOIN" ->
-        let sender = parseUser (Maybe.withDefault "" tokens.prefix)
+        let sender = toUser (Maybe.withDefault "" tokens.prefix)
         in Types.Joined {who = sender, channel = String.join " " tokens.params}
 
       Just "PART" ->
         let
-          sender = parseUser (Maybe.withDefault "" tokens.prefix)
+          sender = toUser (Maybe.withDefault "" tokens.prefix)
           channel = List.head tokens.params
-        in Types.Parted {who = sender, channel = Maybe.withDefault "" channel, reason = List.head tokens.params}
+        in Types.Parted {who = sender, channel = Maybe.withDefault "" channel, reason = tokens.params |> List.drop 1 |> List.head}
 
       Just "KICK" ->
         let
-          sender = parseUser (Maybe.withDefault "" tokens.prefix)
+          sender = toUser (Maybe.withDefault "" tokens.prefix)
           channel = List.head tokens.params
           whom = List.head (List.drop 1 tokens.params)
-        in Types.Kick {
+        in Types.Kicked {
           who = sender,
           whom = Maybe.withDefault "" whom,
           channel = Maybe.withDefault "" channel,
@@ -128,7 +129,7 @@ parse str =
 
       Just "TOPIC" ->
         let
-          sender = parseUser (Maybe.withDefault "" tokens.prefix)
+          sender = toUser (Maybe.withDefault "" tokens.prefix)
           channel = List.head tokens.params
         in Types.Topic {who = sender, channel = Maybe.withDefault "" channel, text = List.head tokens.params}
 

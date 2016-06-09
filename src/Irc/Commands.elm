@@ -1,4 +1,4 @@
-module Irc.Commands exposing (commands) --where
+module Irc.Commands exposing (commands, stringify) --where
 
 import Irc.Util as Util
 import WebSocket

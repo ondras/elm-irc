@@ -40,7 +40,7 @@ type Message
       who : User,
       nick : String
     }
-  | Kick {
+  | Kicked {
       who : User,
       whom: String,
       channel : String,
