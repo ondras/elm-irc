@@ -12,10 +12,11 @@ import Irc.Types as Types
 
 type Msg x = IrcMsg Types.Message | AppMsg x
 
+merge : (model, Cmd x) -> Cmd x -> (model, Cmd x)
 merge (model, cmd1) cmd2 =
   (model, Cmd.batch [cmd1, cmd2])
 
-{-| A specilized version of `Html.App.program` that features the extra `onIrc` callback -}
+{-| A specialized version of `Html.App.program` that features the extra `onIrc` callback -}
 program : {
     cfg : Types.Config,
     init : model,
