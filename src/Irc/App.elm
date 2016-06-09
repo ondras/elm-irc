@@ -1,8 +1,13 @@
 module Irc.App exposing (program) --where
 
+{-| elm-irc client library, the Elm Architecture wrapper
+@docs program
+-}
+
+import Html
 import Html.App
 import Irc
-import Irc.Commands exposing (commands)
+import Irc.Commands exposing (commands, CommandSet)
 import Irc.Types as Types
 
 type Msg x = IrcMsg Types.Message | AppMsg x
@@ -10,6 +15,14 @@ type Msg x = IrcMsg Types.Message | AppMsg x
 merge (model, cmd1) cmd2 =
   (model, Cmd.batch [cmd1, cmd2])
 
+{-| A specilized version of `Html.App.program` that features the extra `onIrc` callback -}
+program : {
+    cfg : Types.Config,
+    init : model,
+    onIrc : Types.Message -> model -> CommandSet a -> (model, Cmd (Msg x)),
+    update : x -> model -> CommandSet a -> (model, Cmd (Msg x)),
+    view : model -> Html.Html x
+  } -> Program Never
 program app =
   let
     cmds = (commands app.cfg)

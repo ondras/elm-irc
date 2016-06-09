@@ -21,7 +21,7 @@ user =
   Types.User "elmer" "elmer" "Elmer Elmerovič"
 
 cfg =
-  { proxy = "localhost:6667", server = "irc.freenode.org", user = user }
+  Types.Config { proxy = "localhost:6667", server = "irc.freenode.org", user = user }
 
 update _ model _ =
   (model, Cmd.none)

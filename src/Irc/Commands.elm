@@ -1,9 +1,30 @@
-module Irc.Commands exposing (commands, stringify) --where
+module Irc.Commands exposing (commands, stringify, CommandSet) --where
+
+{-| elm-irc library, commands to be sent to the IRC server
+@docs commands, stringify, CommandSet
+-}
 
 import Irc.Util as Util
+import Irc.Types as Types
 import WebSocket
 import String
 
+{-| a set of commands for a particular server -}
+type alias CommandSet msg = {
+  join : String -> Cmd msg,
+  nick : String -> Cmd msg,
+  raw : String -> List String -> Cmd msg,
+  kick : String -> String -> Maybe String -> Cmd msg,
+  register : Types.User -> Cmd msg,
+  query : String -> String -> Cmd msg,
+  message : String -> String -> Cmd msg,
+  part : String -> Maybe String -> Cmd msg,
+  pong : String -> Cmd msg,
+  topic : String -> Maybe String -> Cmd msg
+  }
+
+{-| serialize individual IRC data to a raw string -}
+stringify : String -> List String -> String
 stringify cmd params =
   let
     addColon index str =
@@ -17,8 +38,12 @@ push list mayb =
     Nothing -> list
     Just x -> List.append list [x]
 
+raw : Types.Config -> String -> List String -> Cmd x
 raw cfg cmd params =
   WebSocket.send (Util.url cfg) (stringify cmd params)
+
+xraw : Types.Config -> (String -> List String -> Cmd x)
+xraw cfg = raw cfg
 
 nick cfg nick' =
   raw cfg "NICK" [nick']
@@ -53,6 +78,8 @@ topic cfg channel text =
 kick cfg channel nick reason =
   raw cfg "KICK" (push [channel] reason)
 
+{-| generate command variants for a particular server configuration -}
+commands : Types.Config -> CommandSet x
 commands cfg =
   {
     raw = raw cfg,

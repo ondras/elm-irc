@@ -1,5 +1,18 @@
 module Irc.Types exposing (..) --where
 
+{-| elm-irc library, types and definitions
+@docs Config, User, Message
+-}
+
+{-| Server configuration: nickname, username, fullname -}
+type alias Config
+  = {
+    proxy : String,
+    server : String,
+    user : User
+  }
+
+{-| User record: nickname, username, fullname -}
 type alias User
   = {
     nick : String,
@@ -7,6 +20,7 @@ type alias User
     fullname : String
   }
 
+{-| IRC message type -}
 type Message
   = Unknown String
   | Ping String
