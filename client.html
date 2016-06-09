@@ -8670,6 +8670,10 @@ var _ondras$elm_irc$Irc_Util$url = function (cfg) {
 				'/?server=',
 				_evancz$elm_http$Http$uriEncode(cfg.server))));
 };
+var _ondras$elm_irc$Irc_Types$Config = F3(
+	function (a, b, c) {
+		return {proxy: a, server: b, user: c};
+	});
 var _ondras$elm_irc$Irc_Types$User = F3(
 	function (a, b, c) {
 		return {nick: a, username: b, fullname: c};
@@ -9028,6 +9032,27 @@ var _ondras$elm_irc$Irc_Commands$commands = function (cfg) {
 		part: _ondras$elm_irc$Irc_Commands$part(cfg),
 		topic: _ondras$elm_irc$Irc_Commands$topic(cfg),
 		kick: _ondras$elm_irc$Irc_Commands$kick(cfg)
+	};
+};
+var _ondras$elm_irc$Irc_Commands$CommandSet = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return {join: a, nick: b, raw: c, kick: d, register: e, query: f, message: g, part: h, pong: i, topic: j};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
 	};
 };
 var _ondras$elm_irc$Irc$listen = function (cfg) {

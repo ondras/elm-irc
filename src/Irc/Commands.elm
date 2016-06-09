@@ -38,12 +38,8 @@ push list mayb =
     Nothing -> list
     Just x -> List.append list [x]
 
-raw : Types.Config -> String -> List String -> Cmd x
 raw cfg cmd params =
   WebSocket.send (Util.url cfg) (stringify cmd params)
-
-xraw : Types.Config -> (String -> List String -> Cmd x)
-xraw cfg = raw cfg
 
 nick cfg nick' =
   raw cfg "NICK" [nick']

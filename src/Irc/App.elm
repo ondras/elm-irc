@@ -19,8 +19,8 @@ merge (model, cmd1) cmd2 =
 program : {
     cfg : Types.Config,
     init : model,
-    onIrc : Types.Message -> model -> CommandSet a -> (model, Cmd (Msg x)),
-    update : x -> model -> CommandSet a -> (model, Cmd (Msg x)),
+    onIrc : Types.Message -> model -> CommandSet (Msg x) -> (model, Cmd (Msg x)),
+    update : x -> model -> CommandSet (Msg x) -> (model, Cmd (Msg x)),
     view : model -> Html.Html x
   } -> Program Never
 program app =
